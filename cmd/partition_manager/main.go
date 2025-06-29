@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	firstPartitionTime = time.Date(2025, time.June, 29, 18, 0, 0, 0, time.UTC)
+	firstPartitionTime = time.Date(2025, time.June, 29, 22, 0, 0, 0, time.UTC)
 )
 
 func main() {
@@ -42,11 +42,6 @@ func createPartitions() error {
 		return err
 	}
 	defer database.Close()
-
-	err = db.CreateTables(database)
-	if err != nil {
-		log.Fatalf("Failed to create table events: %v", err)
-	}
 
 	// Get the end time of the last partition as the starting point
 	origLastPartitionEndTime, err := db.GetLastPartitionEndTime(database)

@@ -10,6 +10,25 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate:latest
+    entrypoint: /migrate -path=/migrations/ -database postgres://postgres:postgres@postgres:5432/partitioning_demo?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    links:
+      - postgres
+    volumes:
+      - ./migrations:/migrations
+
+
+
 
 volumes:
   postgres_data:

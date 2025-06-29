@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"pg_partitioning/db"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -84,7 +86,7 @@ func main() {
 		}
 
 		// Insert the event
-		if err := db.InsertEvent(database, randomName(), string(jsonPayload)); err != nil {
+		if err := db.InsertEvent(database, randomName(), uuid.NewString(), uuid.NewString(), string(jsonPayload)); err != nil {
 			log.Printf("Error inserting event: %v", err)
 		} else {
 			eventCount++
