@@ -3,11 +3,12 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"github.com/google/uuid"
-	_ "github.com/lib/pq"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	_ "github.com/lib/pq" // sql driver
 )
 
 const (
