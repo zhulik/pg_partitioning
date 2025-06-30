@@ -48,7 +48,6 @@ func createPartitions() error {
 	lastPartitionEndTime := origLastPartitionEndTime
 	if err != nil {
 		log.Printf("Warning: Failed to get last partition end time: %v", err)
-		origLastPartitionEndTime = firstPartitionTime
 		lastPartitionEndTime = firstPartitionTime
 	}
 
