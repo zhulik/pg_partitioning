@@ -1,0 +1,5 @@
+psql:
+  dsn: "postgres://postgres:postgres@127.0.0.1:5432/partitioning_demo?sslmode=disable"
+  uuid_pkg: google
+  only:
+    events:
