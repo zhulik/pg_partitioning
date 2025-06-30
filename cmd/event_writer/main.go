@@ -87,7 +87,7 @@ func main() {
 		}
 
 		// Insert the event
-		if err := db.InsertEvent(context.Background(), database, randomName(), uuid.NewString(), uuid.NewString(), string(jsonPayload)); err != nil {
+		if err := db.InsertEvent(context.Background(), database, randomName(), uuid.New(), uuid.New(), string(jsonPayload)); err != nil {
 			log.Printf("Error inserting event: %v", err)
 		} else {
 			eventCount++

@@ -18,8 +18,8 @@ CREATE TABLE events_table_template (LIKE events);
 ALTER TABLE events_table_template ADD PRIMARY KEY (seq);
 
 SELECT create_parent(
-           p_parent_table := 'public.events'
-           , p_control := 'created_at'
-           , p_interval := '10 seconds'
-           , p_template_table := 'public.events_table_template'
-       );
+   p_parent_table := 'public.events',
+   p_control := 'created_at',
+   p_interval := '10 seconds',
+   p_template_table := 'public.events_table_template'
+);

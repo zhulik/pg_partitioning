@@ -45,13 +45,13 @@ func GetConnection() (bob.DB, error) {
 }
 
 // InsertEvent inserts a new event with the given payload
-func InsertEvent(ctx context.Context, db bob.DB, name, actorID, aggregateID, payload string) error {
+func InsertEvent(ctx context.Context, db bob.DB, name string, actorID, aggregateID uuid.UUID, payload string) error {
 	evtUUID := uuid.New()
 	_, err := Events.Insert(&models.EventsDefaultSetter{
 		UUID:        &evtUUID,
 		Name:        &name,
-		ActorID:     &evtUUID,
-		AggregateID: &evtUUID,
+		ActorID:     &actorID,
+		AggregateID: &aggregateID,
 		Payload:     &types.JSON[json.RawMessage]{Val: json.RawMessage(payload)},
 		// CreatedAt:   nil,
 	}).One(ctx, db)
