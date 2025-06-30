@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
+	"os"
 
 	"pg_partitioning/db/models"
 
@@ -24,6 +26,14 @@ const (
 	password = "postgres"
 	dbname   = "postgres"
 )
+
+type SlogPrinter struct {
+	logger *slog.Logger
+}
+
+func (s SlogPrinter) PrintQuery(query string, args ...any) {
+	s.logger.Info(query, "args", args)
+}
 
 // GetConnection returns a database connection
 func GetConnection() (bob.DB, error) {
@@ -54,7 +64,7 @@ func InsertEvent(ctx context.Context, db bob.DB, name string, actorID, aggregate
 		AggregateID: &aggregateID,
 		Payload:     &types.JSON[json.RawMessage]{Val: json.RawMessage(payload)},
 		// CreatedAt:   nil,
-	}).One(ctx, db)
+	}).One(ctx, bob.DebugToPrinter(db, SlogPrinter{slog.New(slog.NewTextHandler(os.Stdout, nil))}))
 
 	if err != nil {
 		return fmt.Errorf("failed to insert event: %w", err)
