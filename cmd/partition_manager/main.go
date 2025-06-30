@@ -43,30 +43,7 @@ func createPartitions() error {
 	}
 	defer database.Close()
 
-	// Get the end time of the last partition as the starting point
-	origLastPartitionEndTime, err := db.GetLastPartitionEndTime(database)
-	lastPartitionEndTime := origLastPartitionEndTime
-	if err != nil {
-		log.Printf("Warning: Failed to get last partition end time: %v", err)
-		lastPartitionEndTime = firstPartitionTime
-	}
-
-	for lastPartitionEndTime.Before(time.Now().Add(partitionsPerRun * partitionDuration)) {
-		endTime := lastPartitionEndTime.Add(partitionDuration)
-		if err := db.CreatePartition(database, lastPartitionEndTime, endTime); err != nil {
-			panic(err)
-		}
-
-		lastPartitionEndTime = endTime
-	}
-
-	indexStart := firstPartitionTime
-
-	for indexStart.Before(time.Now().Add(-2 * time.Minute)) {
-		indexStart = indexStart.Add(partitionDuration)
-	}
-
-	err = db.CreatePartitionIndex(database, indexStart, partitionDuration)
+	err = db.RunMaintenance(database)
 	if err != nil {
 		log.Printf("Warning: Failed to create partition index: %v", err)
 	}

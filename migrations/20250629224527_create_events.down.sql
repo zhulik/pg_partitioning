@@ -1,1 +1,2 @@
 DROP TABLE EVENTS;
+DROP EXTENSION "pg_partman";
