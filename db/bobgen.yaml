@@ -1,9 +1,8 @@
 psql:
-  dsn: "postgres://postgres:postgres@127.0.0.1:5432/partitioning_demo?sslmode=disable"
+  dsn: "postgres://postgres:postgres@127.0.0.1:5432/postgres"
   uuid_pkg: google
   only:
-    events:
+    events_default:
 
-type_system: database/sql
 wipe: true
 no_factory: true

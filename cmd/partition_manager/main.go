@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -48,7 +49,7 @@ func createPartitions() error {
 		log.Printf("Warning: Failed to create partition index: %v", err)
 	}
 
-	count, err := db.GetPartitionCount(database)
+	count, err := db.GetPartitionCount(context.Background(), database)
 	if err != nil {
 		log.Printf("Warning: Failed to get partition count: %v", err)
 	} else {

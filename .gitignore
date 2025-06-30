@@ -1,2 +1,2 @@
-.bob.go
-.bob_test.go
+*.bob.go
+*.bob_test.go

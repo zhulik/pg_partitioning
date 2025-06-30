@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"math/rand"
@@ -86,7 +87,7 @@ func main() {
 		}
 
 		// Insert the event
-		if err := db.InsertEvent(database, randomName(), uuid.NewString(), uuid.NewString(), string(jsonPayload)); err != nil {
+		if err := db.InsertEvent(context.Background(), database, randomName(), uuid.NewString(), uuid.NewString(), string(jsonPayload)); err != nil {
 			log.Printf("Error inserting event: %v", err)
 		} else {
 			eventCount++

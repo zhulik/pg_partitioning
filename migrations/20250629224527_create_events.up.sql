@@ -1,6 +1,6 @@
-CREATE EXTENSION IF NOT EXISTS "pg_partman";
+CREATE EXTENSION "pg_partman";
 
-CREATE TABLE IF NOT EXISTS events(
+CREATE TABLE events(
     seq bigint GENERATED ALWAYS AS IDENTITY,
     uuid uuid NOT NULL,
     name varchar NOT NULL,

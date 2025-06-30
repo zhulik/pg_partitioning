@@ -1,12 +1,21 @@
 package db
 
 import (
-	"database/sql"
+	"context"
+	"encoding/json"
 	"fmt"
 
+	"pg_partitioning/db/models"
+
 	"github.com/google/uuid"
-	_ "github.com/lib/pq" // sql driver
+	"github.com/stephenafamo/bob"
+	"github.com/stephenafamo/bob/dialect/psql"
+	"github.com/stephenafamo/bob/dialect/psql/sm"
+	"github.com/stephenafamo/bob/types"
+	"github.com/stephenafamo/scan"
 )
+
+var Events = psql.NewTablex[*models.EventsDefault, models.EventsDefaultSlice, *models.EventsDefaultSetter]("", "events")
 
 const (
 	host     = "localhost"
@@ -17,29 +26,36 @@ const (
 )
 
 // GetConnection returns a database connection
-func GetConnection() (*sql.DB, error) {
+func GetConnection() (bob.DB, error) {
 	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s",
 		host, port, user, password, dbname)
 
-	db, err := sql.Open("postgres", connStr)
+	db, err := bob.Open("postgres", connStr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return bob.DB{}, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	// Test the connection
 	err = db.Ping()
 	if err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
+		return bob.DB{}, fmt.Errorf("failed to ping database: %w", err)
 	}
 
 	return db, nil
 }
 
 // InsertEvent inserts a new event with the given payload
-func InsertEvent(db *sql.DB, name, actorID, aggregateID, payload string) error {
-	query := `INSERT INTO events (uuid, name, actor_id, aggregate_id, payload) VALUES ($1, $2, $3, $4, $5)`
+func InsertEvent(ctx context.Context, db bob.DB, name, actorID, aggregateID, payload string) error {
+	evtUUID := uuid.New()
+	_, err := Events.Insert(&models.EventsDefaultSetter{
+		UUID:        &evtUUID,
+		Name:        &name,
+		ActorID:     &evtUUID,
+		AggregateID: &evtUUID,
+		Payload:     &types.JSON[json.RawMessage]{Val: json.RawMessage(payload)},
+		// CreatedAt:   nil,
+	}).One(ctx, db)
 
-	_, err := db.Exec(query, uuid.NewString(), name, actorID, aggregateID, payload)
 	if err != nil {
 		return fmt.Errorf("failed to insert event: %w", err)
 	}
@@ -48,27 +64,20 @@ func InsertEvent(db *sql.DB, name, actorID, aggregateID, payload string) error {
 }
 
 // GetPartitionCount returns the number of partitions for the events table
-func GetPartitionCount(db *sql.DB) (int, error) {
-	query := `
-		SELECT count(*) 
-		FROM pg_inherits 
-		JOIN pg_class parent ON pg_inherits.inhparent = parent.oid 
-		JOIN pg_class child ON pg_inherits.inhrelid = child.oid 
-		WHERE parent.relname = 'events'
-	`
-
-	var count int
-	err := db.QueryRow(query).Scan(&count)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get partition count: %w", err)
-	}
-
-	return count, nil
+func GetPartitionCount(ctx context.Context, db bob.DB) (int, error) {
+	count, err := bob.One(ctx, db,
+		psql.Select(
+			sm.Columns(psql.F("count", "*")),
+			sm.From("pg_inherits"),
+			sm.LeftJoin("pg_class parent").On(psql.Quote("pg_inherits", "inhparent").EQ(psql.Quote("parent", "oid"))),
+			sm.LeftJoin("pg_class child").On(psql.Quote("pg_inherits", "inhrelid").EQ(psql.Quote("child", "oid"))),
+			sm.Where(psql.Quote("parent", "relname").EQ(psql.S("events"))),
+		),
+		scan.SingleColumnMapper[int])
+	return count, err
 }
 
-func RunMaintenance(db *sql.DB) error {
-	_, err := db.Exec(`
-		CALL run_maintenance_proc();
-	`)
+func RunMaintenance(db bob.DB) error {
+	_, err := db.Exec("call run_maintenance_proc()")
 	return err
 }
