@@ -1,24 +1,24 @@
 services:
   postgres:
-    image: postgres:17
+    image: ghcr.io/zalando/spilo-17:4.0-p2
+    # https://github.com/zalando/spilo/blob/master/ENVIRONMENT.rst
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: partitioning_demo
+      PGUSER_SUPERUSER: postgres
+      PGPASSWORD_SUPERUSER: postgres
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/home/postgres/
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 5s
-      timeout: 5s
+      interval: 2s
+      timeout: 1s
       retries: 5
 
   migrate:
     image: migrate/migrate:latest
-    entrypoint: /migrate -path=/migrations/ -database postgres://postgres:postgres@postgres:5432/partitioning_demo?sslmode=disable
+    entrypoint: /migrate -path=/migrations/ -database postgres://postgres:postgres@postgres:5432/postgres
     depends_on:
       postgres:
         condition: service_healthy
