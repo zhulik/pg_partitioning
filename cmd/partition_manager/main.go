@@ -11,16 +11,6 @@ import (
 const (
 	// How often to run the partition manager (60 seconds)
 	managerInterval = 10 * time.Second
-
-	// Duration of each partition (10 seconds)
-	partitionDuration = 10 * time.Second
-
-	// Number of partitions to create in each run (6 partitions)
-	partitionsPerRun = 10
-)
-
-var (
-	firstPartitionTime = time.Date(2025, time.June, 29, 22, 0, 0, 0, time.UTC)
 )
 
 func main() {
