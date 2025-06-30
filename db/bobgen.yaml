@@ -3,3 +3,7 @@ psql:
   uuid_pkg: google
   only:
     events:
+
+type_system: database/sql
+wipe: true
+no_factory: true
