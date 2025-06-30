@@ -44,7 +44,7 @@ func createPartitions() error {
 	}
 	defer database.Close()
 
-	err = db.RunMaintenance(database)
+	err = db.RunMaintenance(context.Background(), database)
 	if err != nil {
 		log.Printf("Warning: Failed to create partition index: %v", err)
 	}

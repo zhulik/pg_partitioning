@@ -27,6 +27,10 @@ const (
 	dbname   = "postgres"
 )
 
+var (
+	Logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+)
+
 type SlogPrinter struct {
 	logger *slog.Logger
 }
@@ -64,7 +68,7 @@ func InsertEvent(ctx context.Context, db bob.DB, name string, actorID, aggregate
 		AggregateID: &aggregateID,
 		Payload:     &types.JSON[json.RawMessage]{Val: json.RawMessage(payload)},
 		// CreatedAt:   nil,
-	}).One(ctx, bob.DebugToPrinter(db, SlogPrinter{slog.New(slog.NewTextHandler(os.Stdout, nil))}))
+	}).One(ctx, bob.DebugToPrinter(db, SlogPrinter{Logger}))
 
 	if err != nil {
 		return fmt.Errorf("failed to insert event: %w", err)
@@ -75,7 +79,7 @@ func InsertEvent(ctx context.Context, db bob.DB, name string, actorID, aggregate
 
 // GetPartitionCount returns the number of partitions for the events table
 func GetPartitionCount(ctx context.Context, db bob.DB) (int, error) {
-	count, err := bob.One(ctx, db,
+	count, err := bob.One(ctx, bob.DebugToPrinter(db, SlogPrinter{Logger}),
 		psql.Select(
 			sm.Columns(psql.F("count", "*")),
 			sm.From("pg_inherits"),
@@ -87,7 +91,7 @@ func GetPartitionCount(ctx context.Context, db bob.DB) (int, error) {
 	return count, err
 }
 
-func RunMaintenance(db bob.DB) error {
-	_, err := db.Exec("call run_maintenance_proc()")
+func RunMaintenance(ctx context.Context, db bob.DB) error {
+	_, err := bob.DebugToPrinter(db, SlogPrinter{Logger}).ExecContext(ctx, "call run_maintenance_proc()")
 	return err
 }
